@@ -7,6 +7,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import cn.hutool.captcha.CircleCaptcha;
+import com.fc.vo.ResultVo;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
 @Controller
@@ -20,6 +25,23 @@ public class LoginController {
         return "login";
     }
 
+    @RequestMapping("login")
+    @ResponseBody
+    public ResultVo login(HttpServletRequest req, HttpServletResponse resp) {
+        HttpSession session = req.getSession(false);
+        CircleCaptcha code = null;
+        if (session == null){
+            return new ResultVo(-1,"验证码错误",null,req.getParameter("code")+"**"+code);
+        }else {
+             code = (CircleCaptcha)session.getAttribute("code");
+        }
+
+        if (req.getParameter("code") == null||!req.getParameter("code").equals(code.getCode())){
+            return new ResultVo(-1,"验证码错误",null,req.getParameter("code")+"**"+code);
+        }else {
+            return loginService.login(req,resp);
+        }
+    }
     @RequestMapping("getCode")
     public void getCode(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         loginService.getCode(req,resp);
